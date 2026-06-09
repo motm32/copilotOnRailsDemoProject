@@ -1,22 +1,23 @@
 {
-  "name": "@ourscrapbook/shared",
+  "name": "@app/shared",
   "version": "1.0.0",
   "type": "module",
-  "main": "dist/types/entities.js",
-  "types": "dist/types/entities.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    "./types": "./dist/types/entities.js",
-    "./types/api": "./dist/types/api.js",
-    "./schemas": "./dist/schemas/validation.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "zod": "^3.23.0"
-  },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
   }
 }

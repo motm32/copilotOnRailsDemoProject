@@ -1,35 +1,27 @@
 export interface AppConfig {
-  storageConnectionString: string;
-  databaseUrl: string;
-  authSecret: string;
-  azureOpenAiEndpoint: string | null;
-  azureOpenAiApiKey: string | null;
-  port: number;
+    storageConnectionString: string;
+    databaseUrl: string;
+    azureOpenAiEndpoint: string;
+    azureOpenAiApiKey: string;
+    authSecret: string;
 }
 
-let cachedConfig: AppConfig | null = null;
+export function loadConfig(): AppConfig {
+    const required = (key: string): string => {
+        const value = process.env[key];
+        if (!value) throw new Error(`Missing required environment variable: ${key}`);
+        return value;
+    };
 
-export function getConfig(): AppConfig {
-  if (cachedConfig) return cachedConfig;
+    const optional = (key: string, fallback: string): string => {
+        return process.env[key] || fallback;
+    };
 
-  const storageConnectionString =
-    process.env.STORAGE_CONNECTION_STRING ?? "UseDevelopmentStorage=true";
-  const databaseUrl =
-    process.env.DATABASE_URL ??
-    "postgresql://localdev:localdevpassword@localhost:5432/scrapbookdb";
-  const authSecret = process.env.AUTH_SECRET;
-  if (!authSecret) {
-    throw new Error("AUTH_SECRET environment variable is required");
-  }
-
-  cachedConfig = {
-    storageConnectionString,
-    databaseUrl,
-    authSecret,
-    azureOpenAiEndpoint: process.env.AZURE_OPENAI_ENDPOINT ?? null,
-    azureOpenAiApiKey: process.env.AZURE_OPENAI_API_KEY ?? null,
-    port: parseInt(process.env.PORT ?? "7071", 10),
-  };
-
-  return cachedConfig;
+    return {
+        storageConnectionString: required('STORAGE_CONNECTION_STRING'),
+        databaseUrl: required('DATABASE_URL'),
+        azureOpenAiEndpoint: optional('AZURE_OPENAI_ENDPOINT', ''),
+        azureOpenAiApiKey: optional('AZURE_OPENAI_API_KEY', ''),
+        authSecret: required('AUTH_SECRET'),
+    };
 }

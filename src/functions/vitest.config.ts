@@ -1,15 +1,21 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-    include: ['tests/**/*.test.ts'],
-    setupFiles: ['tests/setup.ts'],
-  },
-  resolve: {
-    alias: {
-      // Map shared imports for tests
+    test: {
+        globals: true,
+        environment: 'node',
+        include: ['tests/**/*.test.ts'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'lcov'],
+            include: ['src/**/*.ts'],
+            exclude: ['src/functions/*.ts'],
+        },
     },
-  },
+    resolve: {
+        alias: {
+            '@app/shared': path.resolve(__dirname, '../shared/index.ts'),
+        },
+    },
 });

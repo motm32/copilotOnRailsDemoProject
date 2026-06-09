@@ -1,55 +1,39 @@
-import {
-  BlobServiceClient,
-  StorageSharedKeyCredential,
-} from "@azure/storage-blob";
-import type { IStorageService } from "./interfaces/storage.js";
+import { BlobServiceClient } from '@azure/storage-blob';
+import type { IStorageService } from './interfaces/storage.js';
+import type { AppConfig } from './config.js';
 
 export class BlobStorageService implements IStorageService {
-  private client: BlobServiceClient;
+    private client: BlobServiceClient;
+    private containerName = 'photos';
 
-  constructor(connectionString: string) {
-    this.client = BlobServiceClient.fromConnectionString(connectionString);
-  }
-
-  async upload(
-    containerName: string,
-    blobName: string,
-    content: Buffer,
-    contentType: string
-  ): Promise<string> {
-    const containerClient = this.client.getContainerClient(containerName);
-    await containerClient.createIfNotExists({ access: "blob" });
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    await blockBlobClient.uploadData(content, {
-      blobHTTPHeaders: { blobContentType: contentType },
-    });
-    return blockBlobClient.url;
-  }
-
-  async delete(containerName: string, blobName: string): Promise<void> {
-    const containerClient = this.client.getContainerClient(containerName);
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    await blockBlobClient.deleteIfExists();
-  }
-
-  getUrl(containerName: string, blobName: string): string {
-    const containerClient = this.client.getContainerClient(containerName);
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    return blockBlobClient.url;
-  }
-
-  async healthCheck(): Promise<{
-    status: "healthy" | "unhealthy";
-    latencyMs: number;
-  }> {
-    const start = Date.now();
-    try {
-      // List containers as a health probe
-      const iter = this.client.listContainers();
-      await iter.next();
-      return { status: "healthy", latencyMs: Date.now() - start };
-    } catch {
-      return { status: "unhealthy", latencyMs: Date.now() - start };
+    constructor(config: AppConfig) {
+        this.client = BlobServiceClient.fromConnectionString(config.storageConnectionString);
     }
-  }
+
+    async uploadPhoto(buffer: Buffer, filename: string, mimeType: string): Promise<string> {
+        const containerClient = this.client.getContainerClient(this.containerName);
+        await containerClient.createIfNotExists({ access: 'blob' });
+        const blobClient = containerClient.getBlockBlobClient(filename);
+        await blobClient.upload(buffer, buffer.length, {
+            blobHTTPHeaders: { blobContentType: mimeType },
+        });
+        return blobClient.url;
+    }
+
+    async deletePhoto(blobUrl: string): Promise<void> {
+        const url = new URL(blobUrl);
+        const blobName = url.pathname.split('/').slice(2).join('/');
+        const containerClient = this.client.getContainerClient(this.containerName);
+        await containerClient.deleteBlob(blobName);
+    }
+
+    async health(): Promise<boolean> {
+        try {
+            const iter = this.client.listContainers();
+            await iter.next();
+            return true;
+        } catch {
+            return false;
+        }
+    }
 }

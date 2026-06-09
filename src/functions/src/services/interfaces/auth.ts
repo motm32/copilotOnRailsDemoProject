@@ -1,11 +1,11 @@
-export interface TokenPayload {
-  userId: string;
-  email: string;
-  iat: number;
-  exp: number;
+export interface AuthPayload {
+    userId: string;
+    email: string;
 }
 
 export interface IAuthService {
-  generateToken(userId: string, email: string): string;
-  verifyToken(token: string): TokenPayload | null;
+    generateToken(payload: AuthPayload): string;
+    verifyToken(token: string): AuthPayload | null;
+    hashPassword(password: string): Promise<string>;
+    verifyPassword(password: string, hash: string): Promise<boolean>;
 }

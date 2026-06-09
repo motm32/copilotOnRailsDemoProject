@@ -1,98 +1,87 @@
-import type { User, Couple, Photo } from "@/types";
+import type { User, Photo, Pair, PairInvite } from '@/types';
 
-export const mockUsers: Record<string, User> = {
-  sarah: {
-    id: "u1",
-    email: "sarah@example.com",
-    displayName: "Sarah",
-    avatarUrl:
-      "https://ui-avatars.com/api/?name=Sarah&background=7C3AED&color=fff",
-    createdAt: "2025-12-01T10:00:00Z",
-  },
-  mike: {
-    id: "u2",
-    email: "mike@example.com",
-    displayName: "Mike",
-    avatarUrl:
-      "https://ui-avatars.com/api/?name=Mike&background=7C3AED&color=fff",
-    createdAt: "2025-12-02T14:30:00Z",
-  },
+export const currentUser: User = {
+    id: 'user-1',
+    email: 'alex.johnson@email.com',
+    displayName: 'Alex Johnson',
+    avatarUrl: 'https://ui-avatars.com/api/?name=Alex+Johnson&background=E07A5F&color=fff',
 };
 
-export const mockCouple: Couple = {
-  id: "c1",
-  name: "Sarah & Mike",
-  inviteCode: "LOVE-2026-XKCD",
-  partner1: mockUsers.sarah,
-  partner2: mockUsers.mike,
-  createdAt: "2025-12-05T18:00:00Z",
+export const partner: User = {
+    id: 'user-2',
+    email: 'jordan.smith@email.com',
+    displayName: 'Jordan Smith',
+    avatarUrl: 'https://ui-avatars.com/api/?name=Jordan+Smith&background=81B29A&color=fff',
 };
 
-export const mockPhotos: Photo[] = [
-  {
-    id: "p1",
-    url: "https://picsum.photos/seed/sunset-beach/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/sunset-beach/400/300",
-    caption: "Our first sunset together",
-    aiCaption: "Two silhouettes walking along a golden beach at sunset",
-    note: "That magical evening in Santa Monica 🌅",
-    uploadedBy: mockUsers.sarah,
-    coupleId: "c1",
-    createdAt: "2026-01-15T19:30:00Z",
-  },
-  {
-    id: "p2",
-    url: "https://picsum.photos/seed/coffee-date/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/coffee-date/400/300",
-    caption: "Coffee mornings",
-    aiCaption: "Two lattes with heart-shaped foam art on a wooden table",
-    note: "Our favorite café ritual ☕",
-    uploadedBy: mockUsers.mike,
-    coupleId: "c1",
-    createdAt: "2026-02-03T09:15:00Z",
-  },
-  {
-    id: "p3",
-    url: "https://picsum.photos/seed/hiking-trail/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/hiking-trail/400/300",
-    caption: "Mountain adventures",
-    aiCaption: "A couple hiking a misty mountain trail surrounded by wildflowers",
-    note: "Made it to the summit! 🏔️",
-    uploadedBy: mockUsers.sarah,
-    coupleId: "c1",
-    createdAt: "2026-03-10T14:00:00Z",
-  },
-  {
-    id: "p4",
-    url: "https://picsum.photos/seed/cooking-together/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/cooking-together/400/300",
-    caption: "Cooking night",
-    aiCaption: "Hands rolling pasta dough together in a warm kitchen",
-    note: "Homemade pasta from scratch 🍝",
-    uploadedBy: mockUsers.mike,
-    coupleId: "c1",
-    createdAt: "2026-04-02T20:45:00Z",
-  },
-  {
-    id: "p5",
-    url: "https://picsum.photos/seed/rainy-window/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/rainy-window/400/300",
-    caption: "Rainy day in",
-    aiCaption: "Raindrops on a window with fairy lights and two mugs",
-    note: "The coziest Sunday 🌧️",
-    uploadedBy: mockUsers.sarah,
-    coupleId: "c1",
-    createdAt: "2026-04-20T16:30:00Z",
-  },
-  {
-    id: "p6",
-    url: "https://picsum.photos/seed/stargazing/400/300",
-    thumbnailUrl: "https://picsum.photos/seed/stargazing/400/300",
-    caption: "Stargazing",
-    aiCaption: "A blanket under a sky full of stars with a telescope nearby",
-    note: "Found our constellation ✨",
-    uploadedBy: mockUsers.mike,
-    coupleId: "c1",
-    createdAt: "2026-05-18T23:00:00Z",
-  },
+export const currentPair: Pair = {
+    id: 'pair-1',
+    user1Id: 'user-1',
+    user2Id: 'user-2',
+    createdAt: '2026-03-14T10:00:00Z',
+};
+
+export const photos: Photo[] = [
+    {
+        id: 'photo-1',
+        uploaderId: 'user-1',
+        uploaderName: 'Alex',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-1/400/300',
+        caption: 'Sunset picnic at the lakeside — golden light dancing on the water while we shared homemade sandwiches.',
+        createdAt: '2026-06-08T18:30:00Z',
+    },
+    {
+        id: 'photo-2',
+        uploaderId: 'user-2',
+        uploaderName: 'Jordan',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-2/400/300',
+        caption: 'Cozy morning coffee ritual — matching mugs, messy hair, and pure contentment.',
+        createdAt: '2026-06-07T09:15:00Z',
+    },
+    {
+        id: 'photo-3',
+        uploaderId: 'user-1',
+        uploaderName: 'Alex',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-3/400/300',
+        caption: 'Adventure day! Hiking trail selfie with the mountain peak finally in sight.',
+        createdAt: '2026-06-05T14:45:00Z',
+    },
+    {
+        id: 'photo-4',
+        uploaderId: 'user-2',
+        uploaderName: 'Jordan',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-4/400/300',
+        caption: 'Farmers market find — we couldn\'t resist the fresh sunflowers and artisan bread.',
+        createdAt: '2026-06-03T11:00:00Z',
+    },
+    {
+        id: 'photo-5',
+        uploaderId: 'user-1',
+        uploaderName: 'Alex',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-5/400/300',
+        caption: 'Cooking together — flour everywhere but the pasta turned out perfect.',
+        createdAt: '2026-06-01T19:00:00Z',
+    },
+    {
+        id: 'photo-6',
+        uploaderId: 'user-2',
+        uploaderName: 'Jordan',
+        pairId: 'pair-1',
+        blobUrl: 'https://picsum.photos/seed/photo-6/400/300',
+        caption: 'Rainy day bookstore adventure — found matching copies of our favorite novel.',
+        createdAt: '2026-05-29T15:30:00Z',
+    },
 ];
+
+export const pendingInvite: PairInvite = {
+    id: 'invite-1',
+    fromUserId: 'user-1',
+    toEmail: 'friend@example.com',
+    status: 'pending',
+    createdAt: '2026-06-01T10:00:00Z',
+};

@@ -1,44 +1,39 @@
-import type { IStorageService } from "./interfaces/storage.js";
-import type { IDatabaseService } from "./interfaces/database.js";
-import type { ICaptionService } from "./interfaces/caption.js";
-import type { IAuthService } from "./interfaces/auth.js";
-import { BlobStorageService } from "./storage.js";
-import { PostgresDatabaseService } from "./database.js";
-import { OpenAICaptionService } from "./caption.js";
-import { MockAuthService } from "./auth.js";
-import { getConfig } from "./config.js";
+import type { IStorageService } from './interfaces/storage.js';
+import type { IDatabaseService } from './interfaces/database.js';
+import type { IAuthService } from './interfaces/auth.js';
+import type { ICaptionService } from './interfaces/captions.js';
+import { loadConfig } from './config.js';
+import { BlobStorageService } from './storage.js';
+import { PostgresDatabase } from './database.js';
+import { MockAuthService } from './auth.js';
+import { OpenAICaptionService } from './captions.js';
 
 export interface Services {
-  storage: IStorageService;
-  database: IDatabaseService;
-  caption: ICaptionService;
-  auth: IAuthService;
+    storage: IStorageService;
+    database: IDatabaseService;
+    auth: IAuthService;
+    captions: ICaptionService;
 }
 
-let registeredServices: Services | null = null;
+let services: Services | null = null;
 
-export function registerServices(services: Services): void {
-  registeredServices = services;
+function initializeServices(): Services {
+    const config = loadConfig();
+    return {
+        storage: new BlobStorageService(config),
+        database: new PostgresDatabase(config),
+        auth: new MockAuthService(config),
+        captions: new OpenAICaptionService(config),
+    };
 }
 
 export function getServices(): Services {
-  if (registeredServices) return registeredServices;
-
-  const config = getConfig();
-
-  registeredServices = {
-    storage: new BlobStorageService(config.storageConnectionString),
-    database: new PostgresDatabaseService(config.databaseUrl),
-    caption: new OpenAICaptionService(
-      config.azureOpenAiEndpoint,
-      config.azureOpenAiApiKey
-    ),
-    auth: new MockAuthService(config.authSecret),
-  };
-
-  return registeredServices;
+    if (!services) {
+        services = initializeServices();
+    }
+    return services;
 }
 
-export function resetServices(): void {
-  registeredServices = null;
+export function registerServices(s: Services): void {
+    services = s;
 }

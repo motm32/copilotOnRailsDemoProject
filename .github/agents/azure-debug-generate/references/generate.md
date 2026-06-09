@@ -45,6 +45,18 @@ For each service in the plan's Services table (where Generate is checked), gener
 
 ---
 
+## Dependency Availability
+
+> ⚠️ **Do not assume CLI tools or packages are installed in the target project.**
+
+Before writing any script or task command that invokes a CLI tool (e.g., `rimraf`, `concurrently`, `cross-env`):
+
+1. **Check** — Verify the tool is already a project dependency.
+2. **Add dependency** — Add it as a project dev dependency. This ensures it is version-locked and works consistently across all machines.
+3. **Ask if uncertain** — Use `ask_user` if the tool is expensive, opinionated, or has multiple alternatives.
+
+---
+
 ## VS Code Debug & Task Configuration
 
 Assemble `.vscode/launch.json` and `.vscode/tasks.json` by combining properties from the detected **project type** and **runtime** references. Use the source ownership table below to determine which file provides each property.
@@ -140,18 +152,27 @@ When the plan includes emulators, generate a shared `Start Emulators` task. This
 
 ### instanceLimit and instancePolicy
 
-Set **`instanceLimit: 1`** on every task — you never want parallel instances of the same build or startup task.
+Set **`instanceLimit: 1`** on every task — you generally don't want parallel instances of the same build or startup task.
 
 Set **`instancePolicy`** based on these rules (evaluated in order):
 
-1. **Task binds a network port** (e.g., `func host start` on 7071, Express/Fastify server, dev server) → **`"terminateOldest"`**. If a previous debug session wasn't stopped cleanly, the stale process holds the port open. The new instance will fail with "port already in use" unless the old one is killed first. This applies regardless of whether the task supports auto-reload.
-2. **Task requires a full restart to pick up changes** (e.g., .NET `dotnet build` — the compiled binary is stale until rebuilt) → **`"terminateOldest"`**. The old process must be replaced.
-3. **Task auto-reloads on file changes and does NOT bind a port** (e.g., `tsc --watch`) → **`"silent"`**. The existing instance is still valid and handles changes itself.
-4. **Task is idempotent / re-running is a no-op** (e.g., `npm install` when deps haven't changed) → **`"silent"`**.
+1. **Task binds a network port AND is used in a multi-service compound with a sequenced `preLaunchTask`** → **`"silent"`**. The compound task handles startup ordering; duplicates must be silently skipped. Watch-mode processes (func with tsc --watch, Vite HMR) keep the existing instance valid. Using `"terminateOldest"` here would kill the running process when each configuration's individual `preLaunchTask` fires, defeating the sequenced startup.
+2. **Task binds a network port AND is NOT in a compound setup (single-service)** → **`"terminateOldest"`**. No risk of double-invocation; stale port recovery matters.
+3. **Task requires a full restart to pick up changes** (e.g., .NET `dotnet build` — the compiled binary is stale until rebuilt) → **`"terminateOldest"`**. The old process must be replaced.
+4. **Task auto-reloads on file changes and does NOT bind a port** (e.g., `tsc --watch`) → **`"silent"`**. The existing instance is still valid and handles changes itself.
+5. **Task is idempotent / re-running is a no-op** (e.g., `npm install` when deps haven't changed, `docker compose up -d`) → **`"silent"`**.
+
+> **In practice:** for multi-service repos (the common case for this agent), all background tasks should use `"silent"`.
 
 > The default `instancePolicy` is `"prompt"`, which opens a blocking "Select an instance to terminate" picker — even when no instance is actually running. Never leave it unset.
 
 **Background tasks MUST have a real `problemMatcher`.** Avoid `"problemMatcher": []` on a task with `"isBackground": true` — an empty matcher causes a blocking VS Code dialog. Use a framework-specific background matcher from `project-types/{type}.md` or `runtimes/{rt}.md`.
+
+### TypeScript Source Maps
+
+When generating or verifying `tsconfig.json` for a TypeScript service that will be debugged, ensure `"sourceMap": true` is present in `compilerOptions`. Without source maps, the debugger cannot resolve breakpoints in `.ts` files even when successfully attached — breakpoints will appear as "unverified" in VS Code.
+
+> ✅ Add to validation: `tsconfig.json` includes `"sourceMap": true` in `compilerOptions`.
 
 ### Example
 

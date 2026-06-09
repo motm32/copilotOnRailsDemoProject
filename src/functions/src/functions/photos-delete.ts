@@ -1,48 +1,34 @@
-import { app } from "@azure/functions";
-import type { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getServices } from "../services/registry.js";
-import { handleError, NotFoundError, ForbiddenError } from "../errors/index.js";
-import { authenticateRequest } from "../middleware/auth.js";
-import { jsonResponse } from "../utils/response.js";
+import { app, type HttpRequest, type HttpResponseInit, type InvocationContext } from '@azure/functions';
+import { authenticateRequest } from '../middleware/auth.js';
+import { getServices } from '../services/registry.js';
+import { handleError } from '../middleware/error-handler.js';
+import { UnauthorizedError, NotFoundError, ForbiddenError } from '../errors/index.js';
+import { logger } from '../utils/logger.js';
 
-app.http("photos-delete", {
-  methods: ["DELETE"],
-  authLevel: "anonymous",
-  route: "photos/{id}",
-  handler: deletePhotoHandler,
-});
+async function photosDeleteHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+    try {
+        const authPayload = authenticateRequest(request);
+        if (!authPayload) throw new UnauthorizedError();
 
-async function deletePhotoHandler(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const { userId } = authenticateRequest(request);
-    const photoId = request.params.id;
-    const { database, storage } = getServices();
+        const photoId = request.params.id;
+        if (!photoId) throw new NotFoundError('Photo ID required');
 
-    const couple = await database.getCoupleByUserId(userId);
-    if (!couple) {
-      throw new ForbiddenError("You must be in a couple to delete photos");
+        const { database, storage } = getServices();
+        const photo = await database.getPhotoById(photoId);
+        if (!photo) throw new NotFoundError('Photo not found');
+
+        if (photo.uploaderId !== authPayload.userId) {
+            throw new ForbiddenError('You can only delete your own photos');
+        }
+
+        await storage.deletePhoto(photo.blobUrl);
+        await database.deletePhoto(photoId);
+        logger.info({ photoId }, 'Photo deleted');
+
+        return { status: 200, jsonBody: { success: true } };
+    } catch (error) {
+        return handleError(error);
     }
-
-    const photo = await database.getPhotoById(photoId);
-    if (!photo) {
-      throw new NotFoundError("Photo not found");
-    }
-
-    if (photo.coupleId !== couple.id) {
-      throw new ForbiddenError("You do not have access to this photo");
-    }
-
-    // Extract blob name from URL
-    const url = new URL(photo.blobUrl);
-    const blobPath = url.pathname.split("/").slice(2).join("/"); // Remove container prefix
-    await storage.delete("photos", blobPath);
-    await database.deletePhoto(photoId);
-
-    return jsonResponse({ success: true });
-  } catch (err) {
-    return handleError(err);
-  }
 }
+
+app.http('photos-delete', { methods: ['DELETE'], authLevel: 'anonymous', route: 'api/photos/{id}', handler: photosDeleteHandler });

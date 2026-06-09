@@ -1,58 +1,73 @@
-import type { User, Couple, Photo } from "./entities.js";
+import type { PublicUser, Pair, PairInvite, PhotoWithUploader } from './entities.js';
 
+// Error response shape
 export type ErrorCode =
-  | "VALIDATION_ERROR"
-  | "BAD_REQUEST"
-  | "NOT_FOUND"
-  | "CONFLICT"
-  | "UNAUTHORIZED"
-  | "FORBIDDEN"
-  | "INTERNAL_ERROR";
+    | 'VALIDATION_ERROR'
+    | 'BAD_REQUEST'
+    | 'NOT_FOUND'
+    | 'CONFLICT'
+    | 'UNAUTHORIZED'
+    | 'FORBIDDEN'
+    | 'INTERNAL_ERROR'
+    | 'SERVICE_UNAVAILABLE';
 
 export interface ErrorResponse {
-  error: {
-    code: ErrorCode;
-    message: string;
-    details?: unknown;
-  };
+    error: {
+        code: ErrorCode;
+        message: string;
+        details?: unknown;
+    };
 }
 
-export type PublicUser = Omit<User, "passwordHash">;
-
-export interface AuthResponse {
-  user: PublicUser;
-  token: string;
+// Auth
+export interface LoginResponse {
+    token: string;
+    user: PublicUser;
 }
 
-export interface HealthServiceStatus {
-  status: "healthy" | "unhealthy";
-  latencyMs?: number;
+export interface MeResponse {
+    user: PublicUser;
 }
 
-export interface HealthResponse {
-  status: "healthy" | "degraded" | "unhealthy";
-  services: Record<string, HealthServiceStatus>;
+// Users
+export interface CreateUserResponse {
+    user: PublicUser;
 }
 
-export interface InviteResponse {
-  inviteCode: string;
-  expiresAt: string;
+// Pair
+export interface PairInviteResponse {
+    invite: PairInvite;
 }
 
-export interface CoupleResponse {
-  couple: Couple;
-  partner: PublicUser;
+export interface PairAcceptResponse {
+    pair: Pair;
 }
 
-export interface PhotoResponse {
-  photo: Photo;
+export interface PairStatusResponse {
+    pair: Pair | null;
+    partner: PublicUser | null;
+}
+
+// Photos
+export interface PhotoUploadResponse {
+    photo: PhotoWithUploader;
 }
 
 export interface PhotoListResponse {
-  photos: Photo[];
-  total: number;
+    photos: PhotoWithUploader[];
 }
 
-export interface SuccessResponse {
-  success: boolean;
+export interface PhotoDeleteResponse {
+    success: boolean;
+}
+
+// Captions
+export interface CaptionGenerateResponse {
+    caption: string;
+}
+
+// Health
+export interface HealthResponse {
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    services: Record<string, { status: 'up' | 'down'; latencyMs?: number }>;
 }

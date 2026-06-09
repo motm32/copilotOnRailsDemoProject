@@ -1,51 +1,26 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import AppHeader from "@/components/AppHeader";
-import Login from "@/pages/Login";
-import Scrapbook from "@/pages/Scrapbook";
-import UploadPage from "@/pages/Upload";
-import Pair from "@/pages/Pair";
-import Profile from "@/pages/Profile";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AppLayout } from "@/components/AppLayout";
+import { LoginPage } from "@/pages/LoginPage";
+import { ScrapbookPage } from "@/pages/ScrapbookPage";
+import { UploadPage } from "@/pages/UploadPage";
+import { PairPage } from "@/pages/PairPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 
-function ProtectedLayout() {
-  const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
-      <Outlet />
-    </div>
-  );
+function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route element={<AppLayout />}>
+                    <Route path="/" element={<ScrapbookPage />} />
+                    <Route path="/upload" element={<UploadPage />} />
+                    <Route path="/pair" element={<PairPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
-function PublicRoute() {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/" replace />;
-  return <Outlet />;
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Public */}
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-          </Route>
-
-          {/* Protected */}
-          <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<Scrapbook />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/pair" element={<Pair />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
+export default App;

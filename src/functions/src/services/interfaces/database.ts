@@ -1,32 +1,32 @@
-import type { User, Couple, Photo, InviteCode } from "../../../../shared/types/entities.js";
+import type { User, PublicUser, Pair, PairInvite, Photo, PhotoWithUploader } from '@app/shared';
 
 export interface IDatabaseService {
-  // Users
-  createUser(user: Omit<User, "createdAt" | "updatedAt">): Promise<User>;
-  getUserById(id: string): Promise<User | null>;
-  getUserByEmail(email: string): Promise<User | null>;
-  updateUser(id: string, updates: Partial<Pick<User, "coupleId" | "displayName">>): Promise<User>;
+    // Users
+    createUser(email: string, displayName: string, passwordHash: string): Promise<User>;
+    getUserByEmail(email: string): Promise<User | null>;
+    getUserById(id: string): Promise<User | null>;
+    getPublicUser(id: string): Promise<PublicUser | null>;
 
-  // Couples
-  createCouple(couple: Omit<Couple, "createdAt">): Promise<Couple>;
-  getCoupleById(id: string): Promise<Couple | null>;
-  getCoupleByUserId(userId: string): Promise<Couple | null>;
+    // Pairs
+    createPair(user1Id: string, user2Id: string): Promise<Pair>;
+    getPairByUserId(userId: string): Promise<Pair | null>;
 
-  // Invite Codes
-  createInviteCode(invite: Omit<InviteCode, "createdAt">): Promise<InviteCode>;
-  getInviteCodeByCode(code: string): Promise<InviteCode | null>;
-  markInviteCodeUsed(id: string, usedBy: string): Promise<void>;
-  getActiveInviteByUser(userId: string): Promise<InviteCode | null>;
+    // Invites
+    createInvite(fromUserId: string, toEmail: string): Promise<PairInvite>;
+    getInviteById(id: string): Promise<PairInvite | null>;
+    acceptInvite(inviteId: string): Promise<PairInvite>;
+    getPendingInviteForUser(email: string): Promise<PairInvite | null>;
 
-  // Photos
-  createPhoto(photo: Omit<Photo, "createdAt">): Promise<Photo>;
-  getPhotoById(id: string): Promise<Photo | null>;
-  getPhotosByCoupleId(coupleId: string): Promise<Photo[]>;
-  deletePhoto(id: string): Promise<void>;
+    // Photos
+    createPhoto(photo: Omit<Photo, 'id' | 'createdAt' | 'caption'>): Promise<Photo>;
+    getPhotosByPairId(pairId: string): Promise<PhotoWithUploader[]>;
+    getPhotoById(id: string): Promise<Photo | null>;
+    deletePhoto(id: string): Promise<void>;
+    updatePhotoCaption(id: string, caption: string): Promise<Photo>;
 
-  // Transaction support
-  transaction<T>(fn: (client: IDatabaseService) => Promise<T>): Promise<T>;
+    // Transactions
+    transaction<T>(fn: (client: unknown) => Promise<T>): Promise<T>;
 
-  // Health
-  healthCheck(): Promise<{ status: "healthy" | "unhealthy"; latencyMs: number }>;
+    // Health
+    health(): Promise<boolean>;
 }

@@ -1,83 +1,55 @@
-import { app } from "@azure/functions";
-import type { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { randomUUID } from "node:crypto";
-import { getServices } from "../services/registry.js";
-import { handleError, ValidationError, ForbiddenError } from "../errors/index.js";
-import { authenticateRequest } from "../middleware/auth.js";
-import { createdResponse } from "../utils/response.js";
+import { app, type HttpRequest, type HttpResponseInit, type InvocationContext } from '@azure/functions';
+import { photoUploadSchema } from '@app/shared';
+import { v4 as uuidv4 } from 'uuid';
+import { authenticateRequest } from '../middleware/auth.js';
+import { getServices } from '../services/registry.js';
+import { handleError } from '../middleware/error-handler.js';
+import { UnauthorizedError, NotFoundError, ValidationError } from '../errors/index.js';
+import { logger } from '../utils/logger.js';
 
-const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const CONTAINER_NAME = "photos";
+async function photosUploadHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+    try {
+        const authPayload = authenticateRequest(request);
+        if (!authPayload) throw new UnauthorizedError();
 
-app.http("photos-upload", {
-  methods: ["POST"],
-  authLevel: "anonymous",
-  route: "photos",
-  handler: uploadHandler,
-});
+        const { database, storage } = getServices();
 
-async function uploadHandler(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const { userId } = authenticateRequest(request);
-    const { database, storage, caption } = getServices();
+        const pair = await database.getPairByUserId(authPayload.userId);
+        if (!pair) throw new NotFoundError('You must be paired to upload photos');
 
-    // Check user is in a couple
-    const couple = await database.getCoupleByUserId(userId);
-    if (!couple) {
-      throw new ForbiddenError("You must be in a couple to upload photos");
+        const formData = await request.formData();
+        const file = formData.get('file');
+        if (!file || !(file instanceof Blob)) throw new ValidationError('No file provided');
+
+        const mimeType = file.type;
+        const sizeBytes = file.size;
+        photoUploadSchema.parse({ mimeType, sizeBytes });
+
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const ext = mimeType.split('/')[1] === 'jpeg' ? 'jpg' : mimeType.split('/')[1];
+        const filename = `${pair.id}/${uuidv4()}.${ext}`;
+
+        const blobUrl = await storage.uploadPhoto(buffer, filename, mimeType);
+
+        const photo = await database.createPhoto({
+            uploaderId: authPayload.userId,
+            pairId: pair.id,
+            blobUrl,
+            filename,
+            mimeType,
+            sizeBytes,
+        });
+
+        const user = await database.getPublicUser(authPayload.userId);
+        logger.info({ photoId: photo.id, pairId: pair.id }, 'Photo uploaded');
+
+        return {
+            status: 201,
+            jsonBody: { photo: { ...photo, uploaderName: user?.displayName || 'Unknown' } },
+        };
+    } catch (error) {
+        return handleError(error);
     }
-
-    const formData = await request.formData();
-    const file = formData.get("file");
-
-    if (!file || !(file instanceof Blob)) {
-      throw new ValidationError("A file is required");
-    }
-
-    const mimeType = file.type;
-    if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-      throw new ValidationError(
-        `Invalid file type: ${mimeType}. Allowed: ${[...ALLOWED_MIME_TYPES].join(", ")}`
-      );
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    if (buffer.length > MAX_FILE_SIZE) {
-      throw new ValidationError("File size exceeds 10MB limit");
-    }
-
-    const photoId = randomUUID();
-    const extension = mimeType.split("/")[1];
-    const blobName = `${couple.id}/${photoId}.${extension}`;
-
-    const blobUrl = await storage.upload(CONTAINER_NAME, blobName, buffer, mimeType);
-
-    // Generate AI caption (enhancement — fallback on failure)
-    const generatedCaption = await caption.generateCaption(buffer, mimeType);
-
-    const photo = await database.createPhoto({
-      id: photoId,
-      coupleId: couple.id,
-      uploadedBy: userId,
-      blobUrl,
-      caption: generatedCaption,
-      mimeType,
-      sizeBytes: buffer.length,
-    });
-
-    return createdResponse({ photo });
-  } catch (err) {
-    return handleError(err);
-  }
 }
+
+app.http('photos-upload', { methods: ['POST'], authLevel: 'anonymous', route: 'api/photos/upload', handler: photosUploadHandler });

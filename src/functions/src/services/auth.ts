@@ -1,64 +1,44 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import type { IAuthService, TokenPayload } from "./interfaces/auth.js";
-
-const TOKEN_EXPIRY_SECONDS = 86400; // 24 hours
+import { createHmac } from 'node:crypto';
+import type { IAuthService, AuthPayload } from './interfaces/auth.js';
+import type { AppConfig } from './config.js';
 
 export class MockAuthService implements IAuthService {
-  private secret: string;
+    private secret: string;
 
-  constructor(secret: string) {
-    this.secret = secret;
-  }
-
-  generateToken(userId: string, email: string): string {
-    const header = { alg: "HS256", typ: "JWT" };
-    const payload: TokenPayload = {
-      userId,
-      email,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS,
-    };
-
-    const encodedHeader = this.base64UrlEncode(JSON.stringify(header));
-    const encodedPayload = this.base64UrlEncode(JSON.stringify(payload));
-    const signature = this.sign(`${encodedHeader}.${encodedPayload}`);
-
-    return `${encodedHeader}.${encodedPayload}.${signature}`;
-  }
-
-  verifyToken(token: string): TokenPayload | null {
-    try {
-      const parts = token.split(".");
-      if (parts.length !== 3) return null;
-
-      const [encodedHeader, encodedPayload, signature] = parts;
-      const expectedSignature = this.sign(`${encodedHeader}.${encodedPayload}`);
-
-      const sigBuffer = Buffer.from(signature, "base64url");
-      const expectedBuffer = Buffer.from(expectedSignature, "base64url");
-
-      if (sigBuffer.length !== expectedBuffer.length) return null;
-      if (!timingSafeEqual(sigBuffer, expectedBuffer)) return null;
-
-      const payload = JSON.parse(
-        Buffer.from(encodedPayload, "base64url").toString("utf-8")
-      ) as TokenPayload;
-
-      if (payload.exp < Math.floor(Date.now() / 1000)) return null;
-
-      return payload;
-    } catch {
-      return null;
+    constructor(config: AppConfig) {
+        this.secret = config.authSecret;
     }
-  }
 
-  private sign(data: string): string {
-    return createHmac("sha256", this.secret)
-      .update(data)
-      .digest("base64url");
-  }
+    generateToken(payload: AuthPayload): string {
+        const data = JSON.stringify(payload);
+        const encoded = Buffer.from(data).toString('base64url');
+        const sig = this.sign(encoded);
+        return `${encoded}.${sig}`;
+    }
 
-  private base64UrlEncode(str: string): string {
-    return Buffer.from(str).toString("base64url");
-  }
+    verifyToken(token: string): AuthPayload | null {
+        const parts = token.split('.');
+        if (parts.length !== 2) return null;
+        const [encoded, sig] = parts;
+        if (this.sign(encoded) !== sig) return null;
+        try {
+            const data = Buffer.from(encoded, 'base64url').toString();
+            return JSON.parse(data) as AuthPayload;
+        } catch {
+            return null;
+        }
+    }
+
+    async hashPassword(password: string): Promise<string> {
+        return createHmac('sha256', this.secret).update(password).digest('hex');
+    }
+
+    async verifyPassword(password: string, hash: string): Promise<boolean> {
+        const computed = await this.hashPassword(password);
+        return computed === hash;
+    }
+
+    private sign(data: string): string {
+        return createHmac('sha256', this.secret).update(data).digest('base64url');
+    }
 }

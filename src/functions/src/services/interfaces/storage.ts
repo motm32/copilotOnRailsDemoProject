@@ -1,14 +1,5 @@
 export interface IStorageService {
-  upload(
-    containerName: string,
-    blobName: string,
-    content: Buffer,
-    contentType: string
-  ): Promise<string>;
-
-  delete(containerName: string, blobName: string): Promise<void>;
-
-  getUrl(containerName: string, blobName: string): string;
-
-  healthCheck(): Promise<{ status: "healthy" | "unhealthy"; latencyMs: number }>;
+    uploadPhoto(buffer: Buffer, filename: string, mimeType: string): Promise<string>;
+    deletePhoto(blobUrl: string): Promise<void>;
+    health(): Promise<boolean>;
 }

@@ -1,7 +1,27 @@
+# Dependencies
 node_modules/
 dist/
+
+# Environment
 .env
-*.js.map
-*.tsbuildinfo
-.azure/
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Azure Functions
 local.settings.json
+bin/
+obj/
+
+# Build
+*.tsbuildinfo
+
+# Logs
+*.log

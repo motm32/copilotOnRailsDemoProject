@@ -1,42 +1,22 @@
-import { app } from "@azure/functions";
-import type { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getServices } from "../services/registry.js";
-import { handleError } from "../errors/index.js";
-import { authenticateRequest } from "../middleware/auth.js";
-import { jsonResponse } from "../utils/response.js";
-import type { PublicUser } from "../../../shared/types/api.js";
+import { app, type HttpRequest, type HttpResponseInit, type InvocationContext } from '@azure/functions';
+import { authenticateRequest } from '../middleware/auth.js';
+import { getServices } from '../services/registry.js';
+import { handleError } from '../middleware/error-handler.js';
+import { UnauthorizedError, NotFoundError } from '../errors/index.js';
 
-app.http("auth-me", {
-  methods: ["GET"],
-  authLevel: "anonymous",
-  route: "auth/me",
-  handler: meHandler,
-});
+async function meHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+    try {
+        const authPayload = authenticateRequest(request);
+        if (!authPayload) throw new UnauthorizedError();
 
-async function meHandler(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const { userId } = authenticateRequest(request);
-    const { database } = getServices();
+        const { database } = getServices();
+        const user = await database.getPublicUser(authPayload.userId);
+        if (!user) throw new NotFoundError('User not found');
 
-    const user = await database.getUserById(userId);
-    if (!user) {
-      throw new Error("User not found");
+        return { status: 200, jsonBody: { user } };
+    } catch (error) {
+        return handleError(error);
     }
-
-    const publicUser: PublicUser = {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName,
-      coupleId: user.coupleId,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-
-    return jsonResponse({ user: publicUser });
-  } catch (err) {
-    return handleError(err);
-  }
 }
+
+app.http('auth-me', { methods: ['GET'], authLevel: 'anonymous', route: 'api/auth/me', handler: meHandler });
