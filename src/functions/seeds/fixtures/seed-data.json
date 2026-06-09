@@ -1,0 +1,71 @@
+{
+  "users": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "email": "sarah@example.com",
+      "displayName": "Sarah",
+      "password": "password123"
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "email": "mike@example.com",
+      "displayName": "Mike",
+      "password": "password123"
+    }
+  ],
+  "couple": {
+    "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "user1Id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "user2Id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+  },
+  "photos": [
+    {
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "uploadedBy": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo1.jpeg",
+      "caption": "Our first sunset together at the beach",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 245000
+    },
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "uploadedBy": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo2.jpeg",
+      "caption": "Coffee date at our favorite cafe",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 189000
+    },
+    {
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "uploadedBy": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo3.png",
+      "caption": "Hiking adventure in the mountains",
+      "mimeType": "image/png",
+      "sizeBytes": 512000
+    },
+    {
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "uploadedBy": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo4.jpeg",
+      "caption": "Movie night with homemade popcorn",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 178000
+    },
+    {
+      "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+      "uploadedBy": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo5.webp",
+      "caption": "Anniversary dinner at the Italian restaurant",
+      "mimeType": "image/webp",
+      "sizeBytes": 324000
+    },
+    {
+      "id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+      "uploadedBy": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "blobUrl": "https://localhost:10000/devstoreaccount1/photos/c3d4e5f6-a7b8-9012-cdef-123456789012/photo6.jpeg",
+      "caption": "Lazy Sunday morning with pancakes",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 203000
+    }
+  ]
+}

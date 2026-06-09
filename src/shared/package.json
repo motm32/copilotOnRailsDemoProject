@@ -1,0 +1,22 @@
+{
+  "name": "@ourscrapbook/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/types/entities.js",
+  "types": "dist/types/entities.d.ts",
+  "exports": {
+    "./types": "./dist/types/entities.js",
+    "./types/api": "./dist/types/api.js",
+    "./schemas": "./dist/schemas/validation.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

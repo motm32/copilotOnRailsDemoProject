@@ -1,0 +1,27 @@
+{
+  "name": "@ourscrapbook/functions",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/functions/src/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "func start",
+    "test": "vitest run",
+    "seed": "node --loader ts-node/esm seeds/seed.ts"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@azure/storage-blob": "^12.18.0",
+    "@ourscrapbook/shared": "1.0.0",
+    "pg": "^8.12.0",
+    "pino": "^9.2.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.8"
+  }
+}

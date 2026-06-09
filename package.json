@@ -1,0 +1,17 @@
+{
+  "name": "ourscrapbook",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "src/shared",
+    "src/functions",
+    "src/web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:shared": "npm run build -w src/shared",
+    "build:functions": "npm run build -w src/functions",
+    "build:web": "npm run build -w src/web"
+  }
+}
