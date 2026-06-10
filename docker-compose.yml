@@ -1,0 +1,45 @@
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - ./.azurite:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: localdev
+    volumes:
+      - ./.postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  db-migrate:
+    image: node:22-slim
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./src/functions/seeds:/app/src/functions/seeds:ro
+      - ./src/functions/node_modules:/app/node_modules:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/localdev
+      NODE_PATH: /app/node_modules
+    entrypoint: ["node", "/app/scripts/migrate.mjs"]
+    restart: "no"

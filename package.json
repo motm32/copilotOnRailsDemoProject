@@ -14,6 +14,13 @@
     "build:functions": "npm run build -w src/functions",
     "build:web": "npm run build -w src/web",
     "dev:web": "npm run dev -w src/web",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "emulators:start": "docker compose up -d",
+    "emulators:stop": "docker compose down",
+    "emulators:clean": "docker compose down && rimraf .azurite .postgres",
+    "db:migrate": "docker compose up db-migrate"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.0"
   }
 }
