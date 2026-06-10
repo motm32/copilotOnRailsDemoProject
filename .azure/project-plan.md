@@ -1,6 +1,6 @@
 # Project Plan
 
-**Status**: Scaffolded
+**Status**: Ready
 **Created**: 2026-06-09
 **Mode**: NEW
 
@@ -8,7 +8,7 @@
 
 ## 1. Project Overview
 
-**Goal**: A couples photo scrapbook app where two paired users upload photos that are displayed in a scrapbook-style gallery UI with AI-generated captions. Features sign-in authentication, user pairing, and full test coverage. The project is designed so that every module is independently testable.
+**Goal**: A couples photo scrapbook app where two users pair their accounts via invite code, upload photos to a shared scrapbook, and each photo receives an AI-generated caption. The scrapbook UI presents photos in a warm, nostalgic layout. The project is designed so that every module is independently testable.
 
 **App Type**: SPA + API
 
@@ -44,38 +44,38 @@
 
 | Azure Service | Role in App | Environment Variable | Default Value (Local) | Classification |
 |---------------|------------|---------------------|----------------------|----------------|
-| Blob Storage | Store uploaded photos | STORAGE_CONNECTION_STRING | UseDevelopmentStorage=true | Essential |
-| PostgreSQL | Users, couples, photo metadata, captions | DATABASE_URL | postgresql://localdev:localdevpassword@localhost:5432/scrapbookdb | Essential |
-| Azure OpenAI | Generate captions for uploaded photos | AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY | _(no local emulator)_ | Enhancement |
+| Blob Storage | Store uploaded photo files | `STORAGE_CONNECTION_STRING` | `UseDevelopmentStorage=true` | Essential |
+| PostgreSQL | Users, couples, photos metadata, AI captions | `DATABASE_URL` | `postgresql://localdev:localdevpassword@localhost:5432/scrapbookdb` | Essential |
+| Azure OpenAI | Generate AI captions for uploaded photos | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` | _(no local emulator)_ | Enhancement |
 
 ---
 
 ## 5. Design System & UI
 
 **Component Library**: Tailwind CSS + shadcn/ui
-**Style Direction**: Warm, whimsical scrapbook feel with soft elevations, rounded 8px corners, and a cozy, personal aesthetic emphasizing photo-first layouts.
+**Style Direction**: Dreamy purple scrapbook aesthetic with soft shadows, rounded corners (8px), and a cozy nostalgic feel. Photos displayed as polaroid-style cards with tilted angles and tape/pin decorations.
 **Typography**: Inter, system-ui
 
 ### Color Palette
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `primary` | `#E07A5F` | Brand color, primary buttons, links (warm terracotta) |
-| `accent` | `#81B29A` | Secondary accents, partner highlights (sage green) |
-| `surface` | `#FDF6F0` | Page backgrounds (warm cream) |
-| `text` | `#2D3436` | Body text |
-| `muted` | `#8E8E8E` | Secondary text, captions, timestamps |
-| `border` | `#E8DDD5` | Dividers, card borders (warm neutral) |
+| `primary` | `#7C3AED` | Rich violet — primary buttons, links, nav accents |
+| `accent` | `#A78BFA` | Soft lavender — highlights, photo borders, badges |
+| `surface` | `#FAF5FF` | Pale lilac — page backgrounds |
+| `text` | `#1E1B2E` | Deep plum — body text |
+| `muted` | `#8B7FA8` | Muted mauve — secondary text, captions, timestamps |
+| `border` | `#E9E0F5` | Light wisteria — dividers, card borders |
 
 ### Pages
 
 | Page | Route | Purpose | Layout |
 |------|-------|---------|--------|
-| Sign In | `/login` | Authentication entry point | `main + form` |
-| Scrapbook | `/` | Main gallery — shared photo scrapbook view | `header + grid` |
-| Upload | `/upload` | Upload new photos | `header + main + form` |
-| Pair | `/pair` | Invite and link with a partner | `header + main + card-list` |
-| Profile | `/profile` | Account settings and partner info | `header + main + form` |
+| Login / Register | `/login` | Sign in or create an account | `header + form + footer` |
+| Scrapbook | `/` | Main scrapbook view — photos displayed as polaroid cards with AI captions | `header + nav + hero + grid + footer` |
+| Upload | `/upload` | Upload new photos to the shared scrapbook | `header + nav + form + footer` |
+| Pair | `/pair` | Generate or enter an invite code to pair with a partner | `header + nav + card-list + form + footer` |
+| Profile | `/profile` | View and edit user profile, see partner info | `header + nav + card-list + footer` |
 
 ---
 
@@ -84,7 +84,9 @@
 ```
 project-root/
 ├── .azure/
-│   └── project-plan.md
+│   ├── project-plan.md
+│   └── frontend-preview/
+│       └── index.html
 ├── .env.example
 ├── .gitignore
 ├── package.json
@@ -97,29 +99,28 @@ project-root/
 │   │   ├── src/
 │   │   │   ├── functions/
 │   │   │   │   ├── health.ts
+│   │   │   │   ├── auth-register.ts
 │   │   │   │   ├── auth-login.ts
 │   │   │   │   ├── auth-me.ts
-│   │   │   │   ├── users-create.ts
-│   │   │   │   ├── pair-invite.ts
-│   │   │   │   ├── pair-accept.ts
-│   │   │   │   ├── pair-status.ts
+│   │   │   │   ├── couples-invite.ts
+│   │   │   │   ├── couples-join.ts
+│   │   │   │   ├── couples-me.ts
 │   │   │   │   ├── photos-upload.ts
 │   │   │   │   ├── photos-list.ts
-│   │   │   │   ├── photos-delete.ts
-│   │   │   │   └── captions-generate.ts
+│   │   │   │   ├── photos-get.ts
+│   │   │   │   └── photos-delete.ts
 │   │   │   ├── services/
 │   │   │   │   ├── interfaces/
 │   │   │   │   │   ├── storage.ts
 │   │   │   │   │   ├── database.ts
-│   │   │   │   │   ├── auth.ts
-│   │   │   │   │   └── captions.ts
+│   │   │   │   │   ├── caption.ts
+│   │   │   │   │   └── auth.ts
 │   │   │   │   ├── config.ts
 │   │   │   │   └── registry.ts
 │   │   │   ├── errors/
 │   │   │   │   └── index.ts
 │   │   │   └── middleware/
-│   │   │       ├── auth.ts
-│   │   │       └── error-handler.ts
+│   │   │       └── auth.ts
 │   │   ├── tests/
 │   │   │   ├── fixtures/
 │   │   │   ├── mocks/
@@ -131,24 +132,24 @@ project-root/
 │   │   ├── package.json
 │   │   ├── vite.config.ts
 │   │   ├── tailwind.config.ts
+│   │   ├── index.html
 │   │   └── src/
 │   │       ├── api/client.ts
 │   │       ├── components/
-│   │       │   ├── ui/
-│   │       │   ├── ScrapbookGrid.tsx
 │   │       │   ├── PhotoCard.tsx
+│   │       │   ├── ScrapbookGrid.tsx
 │   │       │   ├── UploadForm.tsx
-│   │       │   └── PairInvite.tsx
+│   │       │   ├── PairForm.tsx
+│   │       │   └── AuthForm.tsx
 │   │       ├── pages/
-│   │       │   ├── LoginPage.tsx
-│   │       │   ├── ScrapbookPage.tsx
-│   │       │   ├── UploadPage.tsx
-│   │       │   ├── PairPage.tsx
-│   │       │   └── ProfilePage.tsx
+│   │       │   ├── Scrapbook.tsx
+│   │       │   ├── Upload.tsx
+│   │       │   ├── Login.tsx
+│   │       │   ├── Pair.tsx
+│   │       │   └── Profile.tsx
 │   │       └── hooks/
 │   │           ├── useAuth.ts
-│   │           ├── usePhotos.ts
-│   │           └── usePair.ts
+│   │           └── usePhotos.ts
 │   └── shared/
 │       ├── package.json
 │       ├── types/
@@ -156,8 +157,6 @@ project-root/
 │       │   └── api.ts
 │       └── schemas/
 │           └── validation.ts
-├── docker-compose.yml
-└── vitest.config.ts
 ```
 
 ---
@@ -167,16 +166,16 @@ project-root/
 | # | Method | Path | Description | Request Body | Response Body | Auth | Status Codes |
 |---|--------|------|-------------|-------------|--------------|------|-------------|
 | 1 | GET | `/api/health` | Health check | — | `{ status, services }` | None | 200, 503 |
-| 2 | POST | `/api/auth/login` | Sign in with credentials | `{ email, password }` | `{ token, user }` | None | 200, 401 |
-| 3 | GET | `/api/auth/me` | Get current user profile | — | `{ user }` | Required | 200, 401 |
-| 4 | POST | `/api/users` | Create new user account | `{ email, password, displayName }` | `{ user }` | None | 201, 409, 422 |
-| 5 | POST | `/api/pair/invite` | Send pair invite to partner | `{ partnerEmail }` | `{ invite }` | Required | 201, 404, 409, 422 |
-| 6 | POST | `/api/pair/accept` | Accept a pair invite | `{ inviteId }` | `{ pair }` | Required | 200, 404, 409 |
-| 7 | GET | `/api/pair/status` | Get current pair status | — | `{ pair, partner }` | Required | 200, 404 |
-| 8 | POST | `/api/photos/upload` | Upload a photo to the shared scrapbook | `multipart/form-data { file }` | `{ photo }` | Required | 201, 413, 422 |
-| 9 | GET | `/api/photos` | List all photos in the shared scrapbook | — | `{ photos[] }` | Required | 200 |
-| 10 | DELETE | `/api/photos/:id` | Delete a photo (own photos only) | — | `{ success }` | Required | 200, 403, 404 |
-| 11 | POST | `/api/photos/:id/caption` | Generate AI caption for a photo | — | `{ caption }` | Required | 200, 404, 503 |
+| 2 | POST | `/api/auth/register` | Register a new user | `{ email, displayName, password }` | `{ user, token }` | None | 201, 409, 422 |
+| 3 | POST | `/api/auth/login` | Log in an existing user | `{ email, password }` | `{ user, token }` | None | 200, 401, 422 |
+| 4 | GET | `/api/auth/me` | Get current user profile | — | `{ user }` | Required | 200, 401 |
+| 5 | POST | `/api/couples/invite` | Generate an invite code for couple pairing | — | `{ inviteCode, expiresAt }` | Required | 201, 401, 409 |
+| 6 | POST | `/api/couples/join` | Join a couple using an invite code | `{ inviteCode }` | `{ couple }` | Required | 200, 401, 404, 409, 422 |
+| 7 | GET | `/api/couples/me` | Get the current user's couple info | — | `{ couple, partner }` | Required | 200, 401, 404 |
+| 8 | POST | `/api/photos` | Upload a photo to the shared scrapbook | `multipart/form-data { file }` | `{ photo }` | Required | 201, 401, 403, 422 |
+| 9 | GET | `/api/photos` | List all photos in the couple's scrapbook | — | `{ photos[], total }` | Required | 200, 401, 403 |
+| 10 | GET | `/api/photos/:id` | Get a single photo with caption | — | `{ photo }` | Required | 200, 401, 403, 404 |
+| 11 | DELETE | `/api/photos/:id` | Delete a photo | — | `{ success }` | Required | 200, 401, 403, 404 |
 
 ---
 
@@ -185,11 +184,11 @@ project-root/
 > The detailed execution checklist is auto-generated by `azure-project-scaffold` when it begins execution. It copies this section's high-level phases and expands them into step-by-step items with build gates.
 
 ### High-Level Phases
-- [ ] Step 1: Regenerate Frontend (build the real React frontend in `src/web/` from the approved static preview `.azure/frontend-preview/index.html`; do NOT copy the static file)
+- [ ] Step 1: Regenerate Frontend (build the real React + Vite frontend in `src/web/` from the approved static preview `.azure/frontend-preview/index.html`; do NOT copy the static file)
 - [ ] Step 2: Foundation (project config, directory structure, build verification)
 - [ ] Step 3: Configuration & Environment (config module, .env, local.settings.json)
 - [ ] Step 4: Service Abstraction Layer (interfaces + concrete implementations + registry)
-- [ ] Step 5: Database Schema & Migrations (PostgreSQL tables for users, pairs, photos, captions)
+- [ ] Step 5: Database Schema & Migrations (PostgreSQL tables for users, couples, photos)
 - [ ] Step 6: Shared Types & Validation Schemas
 - [ ] Step 7: API Routes / Functions (one handler per route)
 - [ ] Step 8: Error Handling Middleware
