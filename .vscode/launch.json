@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Functions API (debug)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "outFiles": ["${workspaceFolder}/src/functions/dist/**/*.js"],
+      "preLaunchTask": "functions-api: func host start"
+    },
+    {
+      "name": "Web App (debug)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src/web",
+      "preLaunchTask": "web-app: dev server"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug All Services",
+      "configurations": ["Functions API (debug)", "Web App (debug)"],
+      "preLaunchTask": "Start All Services",
+      "stopAll": true
+    }
+  ]
+}

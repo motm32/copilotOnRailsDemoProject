@@ -1,0 +1,75 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "functions-api: npm install",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder}/src/functions" },
+      "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
+    },
+    {
+      "type": "shell",
+      "label": "functions-api: npm clean",
+      "command": "npm run clean",
+      "options": { "cwd": "${workspaceFolder}/src/functions" },
+      "dependsOn": ["functions-api: npm install"],
+      "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
+    },
+    {
+      "type": "shell",
+      "label": "functions-api: npm watch",
+      "command": "npm run watch",
+      "options": { "cwd": "${workspaceFolder}/src/functions" },
+      "dependsOn": ["functions-api: npm clean"],
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch",
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
+    },
+    {
+      "type": "func",
+      "label": "functions-api: func host start",
+      "command": "host start --language-worker -- \"--inspect=9229\"",
+      "options": { "cwd": "${workspaceFolder}/src/functions" },
+      "problemMatcher": "$func-node-watch",
+      "isBackground": true,
+      "dependsOn": ["functions-api: npm watch", "Start Emulators"],
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
+    },
+    {
+      "type": "shell",
+      "label": "web-app: dev server",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/src/web" },
+      "isBackground": true,
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" },
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "Local:"
+        }
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Start Emulators",
+      "command": "docker compose up -d",
+      "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
+    },
+    {
+      "label": "Start All Services",
+      "dependsOn": [
+        "functions-api: func host start",
+        "web-app: dev server"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}
