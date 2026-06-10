@@ -6,12 +6,24 @@ import { UploadPage } from "@/pages/UploadPage";
 import { PairPage } from "@/pages/PairPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 
+function RequireAuth({ children }: { children: React.ReactNode }) {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return <Navigate to="/login" replace />;
+    return <>{children}</>;
+}
+
 function App() {
     return (
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route element={<AppLayout />}>
+                <Route
+                    element={
+                        <RequireAuth>
+                            <AppLayout />
+                        </RequireAuth>
+                    }
+                >
                     <Route path="/" element={<ScrapbookPage />} />
                     <Route path="/upload" element={<UploadPage />} />
                     <Route path="/pair" element={<PairPage />} />

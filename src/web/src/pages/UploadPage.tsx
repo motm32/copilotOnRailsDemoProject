@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Upload, ImageIcon, X } from "lucide-react";
+import { api } from "@/api/client";
 import {
     Card,
     CardContent,
@@ -41,15 +42,19 @@ export function UploadPage() {
         if (file) handleFileSelect(file);
     };
 
-    const handleUpload = () => {
+    const handleUpload = async () => {
         if (!selectedFile) return;
         setUploading(true);
-        // Mock upload
-        setTimeout(() => {
-            setUploading(false);
+        setError(null);
+        try {
+            await api.uploadPhoto(selectedFile);
             setSelectedFile(null);
             setPreview(null);
-        }, 1500);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Upload failed");
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
