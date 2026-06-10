@@ -52,10 +52,18 @@ export class OpenAICaptionService implements ICaptionService {
 
     private fallbackCaption(): string {
         const captions = [
-            'A beautiful moment captured together.',
-            'Making memories, one photo at a time.',
-            'Together is our favorite place to be.',
-            'Another page in our love story.',
+            'Sunshine and smiles — our kind of perfect afternoon.',
+            'Lost in the moment, found in each other.',
+            'Another adventure in the books, side by side.',
+            'Lazy Sunday mornings are better together.',
+            'Caught mid-laugh — the best kind of photo.',
+            'Golden hour looks good on us.',
+            'This one goes in the favorites folder.',
+            'Home is wherever we\'re together.',
+            'Spontaneous detour that turned into the best memory.',
+            'Dancing through life, one snapshot at a time.',
+            'Coffee, cuddles, and a whole lot of love.',
+            'The view is nice, but the company is better.',
         ];
         return captions[Math.floor(Math.random() * captions.length)];
     }

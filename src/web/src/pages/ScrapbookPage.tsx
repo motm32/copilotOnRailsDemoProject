@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, Trash2, AlertCircle, ImageIcon, Upload } from "lucide-react";
 import {
     Card,
     CardContent,
     CardFooter,
-    CardHeader,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,49 +18,57 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { photos, currentUser, partner } from "@/mocks/data";
-import type { Photo } from "@/types";
+import { api } from "@/api/client";
+import type { Photo, User } from "@/types";
 import { useNavigate } from "react-router-dom";
 
 type ViewState = "loading" | "error" | "empty" | "data";
 
 export function ScrapbookPage() {
     const navigate = useNavigate();
-    const [viewState, setViewState] = useState<ViewState>("data");
+    const [viewState, setViewState] = useState<ViewState>("loading");
+    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [partner, setPartner] = useState<User | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
+
+    const loadData = async () => {
+        setViewState("loading");
+        try {
+            const [meRes, photosRes, pairRes] = await Promise.all([
+                api.me(),
+                api.listPhotos(),
+                api.getPairStatus(),
+            ]);
+            setCurrentUser(meRes.user);
+            setPartner(pairRes.partner);
+            setPhotos(photosRes.photos);
+            setViewState(photosRes.photos.length === 0 ? "empty" : "data");
+        } catch {
+            setViewState("error");
+        }
+    };
+
+    const didMount = useRef(false);
+    useEffect(() => {
+        if (!didMount.current) {
+            didMount.current = true;
+            loadData();
+        }
+    });
 
     return (
         <div className="space-y-6">
             {/* Hero */}
             <div className="text-center space-y-1">
                 <h1 className="text-3xl font-bold">
-                    {currentUser.displayName} & {partner.displayName}'s
+                    {currentUser?.displayName}{partner ? ` & ${partner.displayName}'s` : "'s"}{" "}
                     Scrapbook
                 </h1>
                 <p className="text-muted-foreground">
-                    {photos.length} memories together · Paired since March 2026
+                    {photos.length} memories together
                 </p>
             </div>
-
-            {/* Dev state toggle */}
-            {import.meta.env.DEV && (
-                <div className="flex gap-2 justify-center">
-                    {(["data", "loading", "error", "empty"] as ViewState[]).map(
-                        (s) => (
-                            <Button
-                                key={s}
-                                variant={
-                                    viewState === s ? "default" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => setViewState(s)}
-                            >
-                                {s}
-                            </Button>
-                        ),
-                    )}
-                </div>
-            )}
 
             {/* Loading state */}
             {viewState === "loading" && (
@@ -91,7 +98,7 @@ export function ScrapbookPage() {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setViewState("data")}
+                            onClick={() => loadData()}
                         >
                             Retry
                         </Button>
@@ -149,9 +156,9 @@ export function ScrapbookPage() {
                                         <AvatarImage
                                             src={
                                                 photo.uploaderId ===
-                                                currentUser.id
-                                                    ? currentUser.avatarUrl
-                                                    : partner.avatarUrl
+                                                currentUser?.id
+                                                    ? currentUser?.avatarUrl ?? undefined
+                                                    : partner?.avatarUrl ?? undefined
                                             }
                                         />
                                         <AvatarFallback className="text-xs">
@@ -178,7 +185,7 @@ export function ScrapbookPage() {
                                             AI
                                         </Badge>
                                     )}
-                                    {photo.uploaderId === currentUser.id && (
+                                    {photo.uploaderId === currentUser?.id && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -220,7 +227,13 @@ export function ScrapbookPage() {
                         </Button>
                         <Button
                             variant="destructive"
-                            onClick={() => setDeleteTarget(null)}
+                            onClick={async () => {
+                                if (deleteTarget) {
+                                    await api.deletePhoto(deleteTarget.id);
+                                    setPhotos((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+                                }
+                                setDeleteTarget(null);
+                            }}
                         >
                             Delete Photo
                         </Button>

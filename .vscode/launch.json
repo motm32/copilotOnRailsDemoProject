@@ -5,9 +5,13 @@
       "name": "Functions API (debug)",
       "type": "node",
       "request": "attach",
-      "port": 9229,
+      "port": 9230,
       "restart": true,
       "outFiles": ["${workspaceFolder}/src/functions/dist/**/*.js"],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
       "preLaunchTask": "functions-api: func host start"
     },
     {

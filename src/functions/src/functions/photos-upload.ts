@@ -12,7 +12,7 @@ async function photosUploadHandler(request: HttpRequest, _context: InvocationCon
         const authPayload = authenticateRequest(request);
         if (!authPayload) throw new UnauthorizedError();
 
-        const { database, storage } = getServices();
+        const { database, storage, captions } = getServices();
 
         const pair = await database.getPairByUserId(authPayload.userId);
         if (!pair) throw new NotFoundError('You must be paired to upload photos');
@@ -40,12 +40,16 @@ async function photosUploadHandler(request: HttpRequest, _context: InvocationCon
             sizeBytes,
         });
 
+        // Auto-generate a caption
+        const caption = await captions.generateCaption(blobUrl);
+        const updatedPhoto = await database.updatePhotoCaption(photo.id, caption);
+
         const user = await database.getPublicUser(authPayload.userId);
         logger.info({ photoId: photo.id, pairId: pair.id }, 'Photo uploaded');
 
         return {
             status: 201,
-            jsonBody: { photo: { ...photo, uploaderName: user?.displayName || 'Unknown' } },
+            jsonBody: { photo: { ...updatedPhoto, uploaderName: user?.displayName || 'Unknown' } },
         };
     } catch (error) {
         return handleError(error);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Card,
     CardContent,
@@ -10,17 +10,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { currentUser } from "@/mocks/data";
+import { api } from "@/api/client";
+import type { User } from "@/types";
 
 export function ProfilePage() {
-    const [displayName, setDisplayName] = useState(currentUser.displayName);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [displayName, setDisplayName] = useState("");
     const [saved, setSaved] = useState(false);
+
+    useEffect(() => {
+        api.me().then((res) => {
+            setCurrentUser(res.user);
+            setDisplayName(res.user.displayName);
+        });
+    }, []);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
+
+    if (!currentUser) return null;
 
     return (
         <div className="max-w-lg mx-auto space-y-6">
@@ -35,9 +46,9 @@ export function ProfilePage() {
                 <CardHeader>
                     <div className="flex items-center gap-4">
                         <Avatar className="h-14 w-14">
-                            <AvatarImage src={currentUser.avatarUrl} />
+                            <AvatarImage src={currentUser.avatarUrl ?? undefined} />
                             <AvatarFallback className="text-lg">
-                                AJ
+                                {currentUser.displayName.split(" ").map(n => n[0]).join("")}
                             </AvatarFallback>
                         </Avatar>
                         <div>

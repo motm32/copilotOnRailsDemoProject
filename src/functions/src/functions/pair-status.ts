@@ -13,13 +13,15 @@ async function pairStatusHandler(request: HttpRequest, _context: InvocationConte
         const pair = await database.getPairByUserId(authPayload.userId);
 
         if (!pair) {
-            return { status: 200, jsonBody: { pair: null, partner: null } };
+            // No pair yet — check for pending invite
+            const pendingInvite = await database.getPendingInviteForUser(authPayload.email);
+            return { status: 200, jsonBody: { pair: null, partner: null, pendingInvite: pendingInvite ?? null } };
         }
 
         const partnerId = pair.user1Id === authPayload.userId ? pair.user2Id : pair.user1Id;
         const partner = await database.getPublicUser(partnerId);
 
-        return { status: 200, jsonBody: { pair, partner } };
+        return { status: 200, jsonBody: { pair, partner, pendingInvite: null } };
     } catch (error) {
         return handleError(error);
     }

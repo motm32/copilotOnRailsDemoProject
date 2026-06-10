@@ -29,10 +29,12 @@
       "runOptions": { "instanceLimit": 1, "instancePolicy": "silent" }
     },
     {
-      "type": "func",
+      "type": "shell",
       "label": "functions-api: func host start",
-      "command": "host start --language-worker -- \"--inspect=9229\"",
-      "options": { "cwd": "${workspaceFolder}/src/functions" },
+      "command": "func start",
+      "options": {
+        "cwd": "${workspaceFolder}/src/functions"
+      },
       "problemMatcher": "$func-node-watch",
       "isBackground": true,
       "dependsOn": ["functions-api: npm watch", "Start Emulators"],

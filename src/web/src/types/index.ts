@@ -55,6 +55,7 @@ export interface PairAcceptResponse {
 export interface PairStatusResponse {
     pair: Pair | null;
     partner: User | null;
+    pendingInvite: PairInvite | null;
 }
 
 export interface PhotoUploadResponse {
@@ -84,3 +85,4 @@ export interface ErrorResponse {
         message: string;
         details?: unknown;
     };
+}
